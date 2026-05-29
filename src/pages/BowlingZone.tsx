@@ -351,7 +351,16 @@ export default function BowlingZone() {
   }, [particles]);
   // Generate Neon Sparks on collision or strike
   const spawnSparkles = (x: number, y: number, color: string, count = 12) => {
-    const newSparks = [];
+    const newSparks: {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  color: string;
+  size: number;
+  opacity: number;
+}[] = [];
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 6;
@@ -751,7 +760,7 @@ export default function BowlingZone() {
                     left: `${pin.x}%`,
                     top: `${pin.y}%`,
                     // Reduce scaling of rear pins to exaggerate 3D depth perception
-                    transform: `translate(-translate-x-1/2, -translate-y-1/2) scale(${0.72 + (pin.y * 0.002)})`,
+                    transform: `translate(-50%, -50%) scale(${0.72 + pin.y * 0.002})`,
                   }}
                 >
                   {/* Glowing neon halo behind active pins */}

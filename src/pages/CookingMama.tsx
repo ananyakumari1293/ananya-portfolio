@@ -225,7 +225,16 @@ export default function CookingMama() {
   }, [particles]);
   // Spawn Physics-based Cream Droplets
   const spawnCreamParticles = (x: number, y: number, color: string) => {
-    const newCream: any[] = [];
+    const newCream: {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  color: string;
+  size: number;
+  alpha: number;
+}[] = [];
     const count = 18 + Math.floor(Math.random() * 8);
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -261,7 +270,7 @@ export default function CookingMama() {
     // Spawn cream splash droplets at coordinates
     spawnCreamParticles(event.clientX, event.clientY, cake.creamColor);
     // Slicing splits the active cake, closes the others to keep focus clean
-    const newSliced = { ...slicedCakes, [cake.id]: true };
+    
     const newEver = { ...everSliced, [cake.id]: true };
     
     // Close other cakes splits so only ONE is split open at a time
