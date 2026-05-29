@@ -416,7 +416,7 @@ export default function Hero() {
           </div>
           {/* Level 03 Card - Skill Strike Arena */}
           <div
-            onClick={() => navigate("/glitch-zone")}
+            onClick={() => navigate("/bowling-zone")}
             className="relative bg-purple-100/50 hover:bg-purple-300/80 border border-purple-200 hover:border-purple-400 text-slate-800 rounded-[28px] p-8 shadow-lg cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:rotate-[-1deg] group"
             style={{
               boxShadow: "0 10px 25px rgba(139,92,246,0.06)",
