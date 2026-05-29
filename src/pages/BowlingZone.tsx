@@ -453,7 +453,6 @@ export default function BowlingZone() {
     playRollSound(duration / 1000);
     let startX = ballPos.x;
     let startY = ballPos.y;
-    let currentScale = 1;
     let startTime: number | null = null;
     const animateRoll = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
