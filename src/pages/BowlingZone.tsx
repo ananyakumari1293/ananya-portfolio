@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 // Interfaces for skill categories
 interface PinData {
   id: number;
@@ -15,7 +15,6 @@ interface PinData {
   y: number; // 0 to 100 relative to pin deck height
 }
 export default function BowlingZone() {
-  const navigate = useNavigate();
   // Score & Pin States
   const [score, setScore] = useState(0);
   const [knockedPins, setKnockedPins] = useState<{ [key: number]: boolean }>({});
@@ -544,9 +543,24 @@ export default function BowlingZone() {
       });
       setKnockedPins(newKnocked);
       setScore((prev) => prev + pointsEarned);
+
+      if (targetPin) {
+        lastHitPin = targetPin;
+      }
+
       // Set newly hit pin as the active details display card
       if (lastHitPin) {
         setActivePin(lastHitPin);
+        
+        // Auto-scroll on mobile viewports
+        if (window.innerWidth < 1024) {
+          setTimeout(() => {
+            const detailsElement = document.getElementById("pin-details-card");
+            if (detailsElement) {
+              detailsElement.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 100);
+        }
       }
       // Re-evaluate discovered unique pins counter
       const newlyDiscovered = Object.keys(newKnocked).length;
@@ -625,33 +639,30 @@ export default function BowlingZone() {
           }}
         />
       ))}
-      {/* 1. TOP NAV / BAR MENU */}
-      <header className="relative z-30 flex items-center justify-between px-6 md:px-12 py-5 max-w-7xl mx-auto w-full select-none">
+      {/* Reusable Navbar */}
+      <Navbar theme="dark" />
+
+      {/* Game controls header */}
+      <div className="relative z-30 flex flex-col md:flex-row items-center justify-between px-6 md:px-12 py-4 max-w-7xl mx-auto w-full gap-4 select-none">
         <div className="flex gap-4">
           <button
-            onClick={() => navigate("/")}
-            className="group relative bg-[#0e071e]/75 border border-purple-500/30 hover:border-cyan-400 px-5 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_4px_12px_rgba(168,85,247,0.15)] overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            🏠 Home
-          </button>
-          <button
             onClick={handleReset}
-            className="group relative bg-[#0e071e]/75 border border-purple-500/30 hover:border-pink-500 px-5 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_4px_12px_rgba(168,85,247,0.15)] overflow-hidden"
+            className="group relative bg-[#0e071e]/75 border border-purple-500/30 hover:border-[#ff007f] px-5 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_4px_12px_rgba(168,85,247,0.15)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            🔄 Reset
+            🔄 Reset Pins
           </button>
-        </div>
-        {/* Score & Counter Board */}
-        <div className="flex gap-4 items-center">
           <div 
             onClick={triggerInstantStrike}
-            className="hidden md:flex bg-[#ff007f]/10 border border-[#ff007f]/30 hover:border-[#ff007f]/80 text-[#ff007f] px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95"
+            className="flex bg-[#ff007f]/10 border border-[#ff007f]/30 hover:border-[#ff007f]/80 text-[#ff007f] px-4 py-2.5 rounded-full text-xs font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95 items-center justify-center"
             title="Knock all pins instantly for testing"
           >
             ⚡ Test Strike
           </div>
+        </div>
+
+        {/* Discovered Counter and Score */}
+        <div className="flex gap-4 items-center">
           <div className="flex items-center gap-2 bg-[#0e071e]/80 border border-purple-500/40 px-5 py-2.5 rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
             <span className="text-stone-400 font-bold text-xs uppercase tracking-wider">Discovered:</span>
             <span className="font-extrabold text-cyan-400 text-lg tracking-tight">{discoveredCount}/7</span>
@@ -661,7 +672,7 @@ export default function BowlingZone() {
             <span className="font-black text-pink-500 text-lg tracking-tight">{score}</span>
           </div>
         </div>
-      </header>
+      </div>
       {/* Title & Subtitle Banner */}
       <section className="relative z-10 text-center pt-2 select-none">
         <h1 
@@ -920,7 +931,8 @@ export default function BowlingZone() {
         <div className="relative w-full lg:w-[40%] flex items-center justify-center p-2 min-h-[300px] select-text z-20">
           {activePin ? (
             <div 
-              className="w-full max-w-[450px] glassmorphism-card rounded-[32px] p-8 border border-white/10 text-left relative z-20 shadow-[0_20px_50px_rgba(0,0,0,0.55)] transition-all duration-500 hover:border-white/20 select-text overflow-hidden"
+              id="pin-details-card"
+              className="w-full max-w-[450px] glassmorphism-card rounded-[32px] p-8 border border-white/10 text-left relative z-20 shadow-[0_20px_50px_rgba(0,0,0,0.55)] transition-all duration-500 hover:border-white/20 select-text overflow-hidden scroll-mt-6"
               style={{
                 borderRadius: "24px 36px 20px 32px / 28px 20px 30px 24px" // Slick custom profile cut
               }}

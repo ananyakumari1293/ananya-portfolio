@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Hero from "./components/Hero";
 
-import CandyCrush from "./pages/CandyCrush";
+import FlowerGarden from "./pages/FlowerGarden";
 import FruitNinja from "./pages/FruitNinja";
 import BowlingZone from "./pages/BowlingZone";
 import CookingMama from "./pages/CookingMama";
@@ -16,8 +16,8 @@ function App() {
         <Route path="/" element={<Hero />} />
 
         <Route
-          path="/candy-crush"
-          element={<CandyCrush />}
+          path="/flower-garden"
+          element={<FlowerGarden />}
         />
 
         <Route

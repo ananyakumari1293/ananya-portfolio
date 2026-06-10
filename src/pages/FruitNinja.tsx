@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 // Definition for type safety and clean structures
 interface Offering {
   title: string;
@@ -46,7 +46,6 @@ interface JuiceParticle {
   alpha: number;
 }
 export default function FruitNinja() {
-  const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [slicedFruits, setSlicedFruits] = useState<SlicedState>({});
   const [activeSplashes, setActiveSplashes] = useState<JuiceParticle[]>([]);
@@ -58,6 +57,91 @@ export default function FruitNinja() {
   const trailPoints = useRef<{ x: number; y: number; time: number }[]>([]);
   const animationFrameId = useRef<number | null>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
+
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    setIsTouchDevice(
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0
+    );
+  }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) return;
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    setCursorPos({ x, y });
+    lastMousePos.current = { x, y };
+    setIsHoveringBoard(true);
+    setIsSwiping(false);
+    
+    const elem = document.elementFromPoint(x, y);
+    if (elem) {
+      const fruitContainer = elem.closest('[data-project-id]');
+      if (fruitContainer) {
+        const projectId = fruitContainer.getAttribute('data-project-id');
+        const proj = projects.find((p) => p.id === projectId);
+        if (proj) {
+          triggerSlice(proj, x, y);
+          if (window.innerWidth < 1024) {
+            setTimeout(() => {
+              const scrollTarget = document.getElementById("fruit-details-card");
+              if (scrollTarget) {
+                scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }, 400);
+          }
+        }
+      }
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) return;
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    setCursorPos({ x, y });
+    
+    const dx = x - lastMousePos.current.x;
+    const dy = y - lastMousePos.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    trailPoints.current.push({ x, y, time: Date.now() });
+    
+    if (distance > 10) {
+      setIsSwiping(true);
+      const elem = document.elementFromPoint(x, y);
+      if (elem) {
+        const fruitContainer = elem.closest('[data-project-id]');
+        if (fruitContainer) {
+          const projectId = fruitContainer.getAttribute('data-project-id');
+          const proj = projects.find((p) => p.id === projectId);
+          if (proj) {
+            triggerSlice(proj, x, y);
+            if (window.innerWidth < 1024) {
+              setTimeout(() => {
+                const scrollTarget = document.getElementById("fruit-details-card");
+                if (scrollTarget) {
+                  scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              }, 400);
+            }
+          }
+        }
+      }
+    } else {
+      setIsSwiping(false);
+    }
+    
+    lastMousePos.current = { x, y };
+  };
+
+  const handleTouchEnd = () => {
+    setIsHoveringBoard(false);
+    setIsSwiping(false);
+  };
   const projects: Project[] = [
     {
       id: "scolorax",
@@ -207,6 +291,41 @@ export default function FruitNinja() {
       splashColor: "rgba(234, 179, 8, 0.8)",
       vision: "TripTales was built to make travel feel more personal, emotional, and experience-driven. The platform aims to create a digital space where memories, stories, and human experiences matter more than generic travel checklists.",
       quote: "Some places stay with us long after the journey ends."
+    },
+    {
+      id: "focusnest",
+      fruit: "🍊",
+      title: "FocusNest",
+      subtitle: "A cozy, modern productivity workspace that unites task management, deep work focus timers, collaborative study rooms, Spotify integration, and AI study assistance.",
+      github: "https://github.com/ananyakumari1293/focusnest",
+      live: "https://focusnest-rust.vercel.app",
+      about: "FocusNest is a unified study ecosystem designed to help students, developers, and self-learners focus and achieve their goals in a single calming environment. By bringing together task management, Pomodoro deep work timers, collaborative accountability rooms, Spotify linked music, and an AI study companion, FocusNest prevents context-switching fatigue and encourages structured, mindful learning.",
+      offeringTitle: "✨ WHAT FOCUSNEST OFFERS",
+      offerings: [
+        { title: "🤖 AI Study Assistant", desc: "Generate custom study plans, task breakdowns, productivity advice, and learning assistance powered by Gemini." },
+        { title: "📋 Kanban Task Management", desc: "Organize workflows, track priority tasks, and visualize progress on an interactive board." },
+        { title: "⏱️ Pomodoro Focus Sessions", desc: "Start customizable focus timers to boost attention, build focus streaks, and track deep work." },
+        { title: "👥 Collaborative Study Rooms", desc: "Join shared virtual study spaces for collaborative, real-time accountability sessions." },
+        { title: "🎵 Spotify Integration", desc: "Connect Spotify profiles via OAuth to listen to cozy focus playlists directly inside the app." }
+      ],
+      features: [
+        "AI Study Companion with Gemini AI",
+        "Interactive Kanban board workflow",
+        "Pomodoro Timer with deep work tracking",
+        "Realtime collaborative study rooms",
+        "Spotify OAuth profile integration",
+        "Firebase Authentication and database syncing",
+        "Calm, responsive aesthetic modern UI"
+      ],
+      techStack: {
+        "Frontend": ["React.js", "TypeScript", "Vite", "Tailwind CSS"],
+        "Integrations & AI": ["Google Gemini AI", "Spotify OAuth (PKCE)"],
+        "Database & Auth": ["Firebase", "Firebase Authentication"],
+        "Deployment": ["Vercel"]
+      },
+      color: "#ea580c",
+      splashColor: "rgba(234, 88, 12, 0.8)",
+      quote: "Dream • Build • Learn • Repeat"
     }
   ];
   // Load beautiful typography dynamically on mount
@@ -374,8 +493,12 @@ export default function FruitNinja() {
         fontFamily: "'Outfit', sans-serif",
         backgroundColor: "#4a2c11",
         backgroundImage: "radial-gradient(circle, #5c3a21 0%, #2d1b0f 100%)",
+        cursor: isHoveringBoard && !isTouchDevice ? "none" : "auto",
       }}
       onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onMouseEnter={() => setIsHoveringBoard(true)}
       onMouseLeave={() => {
         setIsHoveringBoard(false);
@@ -405,7 +528,7 @@ export default function FruitNinja() {
         />
       ))}
       {/* Floating Sparkles & Blade Trail following custom cursor */}
-      {isHoveringBoard && (
+      {isHoveringBoard && !isTouchDevice && (
         <div
           className="fixed pointer-events-none z-30 transition-transform duration-75 ease-out select-none"
           style={{
@@ -451,44 +574,49 @@ export default function FruitNinja() {
       {/* Decorative foliage borders */}
       <div className="absolute -top-10 -left-10 w-48 h-48 opacity-40 bg-[url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=600')] bg-cover rounded-full mix-blend-multiply pointer-events-none" />
       <div className="absolute -bottom-10 -right-10 w-64 h-64 opacity-30 bg-[url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=800')] bg-cover rounded-full mix-blend-multiply pointer-events-none" />
-      {/* Home and Reset Buttons */}
-      <div className="absolute top-6 left-6 flex gap-4 z-40">
-        <button
-          onClick={() => navigate("/")}
-          className="bg-[#C38A4D] hover:bg-[#b0783d] px-6 py-3 rounded-2xl shadow-[0_6px_0_#8b5a2b,0_10px_20px_rgba(0,0,0,0.4)] text-white font-extrabold flex items-center gap-2 border-2 border-[#dcae78] transition-all transform hover:-translate-y-1 active:translate-y-0.5"
-        >
-          🏠 Home
-        </button>
-        <button
-          onClick={handleResetBoard}
-          className="bg-[#3b82f6] hover:bg-[#2563eb] px-6 py-3 rounded-2xl shadow-[0_6px_0_#1d4ed8,0_10px_20px_rgba(0,0,0,0.4)] text-white font-extrabold flex items-center gap-2 border-2 border-[#93c5fd] transition-all transform hover:-translate-y-1 active:translate-y-0.5"
-        >
-          🔄 Restart
-        </button>
-      </div>
-      {/* Score Counter */}
-      <div className="absolute top-8 right-8 bg-black/70 text-white px-6 py-3 rounded-xl font-black text-2xl z-40">
-        🏆 {score}
-      </div>
+      {/* Reusable Navbar */}
+      <Navbar theme="dark" />
+
       {/* Header Section */}
-      <div className="text-center pt-8 relative z-30 select-none">
-        <div className="inline-flex items-center gap-4 justify-center">
+      <div className="text-center pt-6 relative z-30 select-none max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        {/* Left Side: Reset Button */}
+        <div className="flex gap-4 items-center justify-center md:justify-start">
+          <button
+            onClick={handleResetBoard}
+            className="bg-[#C38A4D] hover:bg-[#b0783d] px-6 py-3 rounded-2xl shadow-[0_6px_0_#8b5a2b,0_10px_20px_rgba(0,0,0,0.4)] text-white font-extrabold flex items-center gap-2 border-2 border-[#dcae78] transition-all transform hover:-translate-y-1 active:translate-y-0.5 text-sm"
+          >
+            🔄 Restart Board
+          </button>
+        </div>
+
+        {/* Center: Title */}
+        <div className="text-center flex-1">
           <h1
-            className="text-7xl md:text-8xl text-lime-300 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] font-bold tracking-wide select-none cursor-default flex items-center gap-2"
+            className="text-6xl md:text-7xl text-lime-300 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] font-bold tracking-wide select-none cursor-default flex items-center justify-center gap-2"
             style={{ fontFamily: "'Caveat', cursive" }}
           >
             <span className="transform -rotate-12 inline-block">🍉</span>
             Fruit Ninja Projects
           </h1>
         </div>
-        <p className="text-stone-200 text-xl font-medium mt-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
+
+        {/* Right Side: Score Board */}
+        <div className="bg-black/60 border-2 border-[#C38A4D]/50 text-white px-6 py-2.5 rounded-2xl font-black text-xl flex items-center gap-2 shadow-lg w-fit mx-auto md:mx-0">
+          <span>🏆 Score:</span>
+          <span className="text-lime-300">{score}</span>
+        </div>
+      </div>
+
+      <div className="text-center mt-3 relative z-30 select-none">
+        <p className="text-stone-250 text-base font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] max-w-lg mx-auto">
           Hover or drag over the circular floating fruit icons to split them open and view details!
         </p>
       </div>
+
       {/* Main Board Arena */}
-      <div className="relative max-w-7xl mx-auto h-[780px] mt-2 px-6 flex justify-between items-center z-10">
-        {/* Floating Circular Fruits Arena (4 Fruits in a Perfect Circular Ring) */}
-        <div className="relative w-full lg:w-2/3 h-full select-none">
+      <div className="relative max-w-7xl mx-auto h-auto lg:h-[780px] mt-2 px-6 flex flex-col lg:flex-row justify-between items-center gap-10 lg:gap-0 z-10 pb-16 lg:pb-0">
+        {/* Floating Circular Fruits Arena (5 Fruits in a Perfect Circular Ring - Desktop Only) */}
+        <div className="hidden lg:block relative w-full lg:w-2/3 h-full select-none">
           
           {/* Central Hint Dagger Signboard in the exact mathematical center of the circular ring */}
           <div 
@@ -506,17 +634,19 @@ export default function FruitNinja() {
           {projects.map((project, index) => {
             const isSliced = slicedFruits[project.id]?.isSliced;
             
-            // Mathematically balanced horizontal-vertical ellipse/circle centered at (40%, 43%)
+            // Mathematically balanced pentagon centered at (40%, 43%)
             const positions = [
-              { top: "15%", left: "40%" },  // 🍓 ScoloraX (Top-Middle)
-              { top: "43%", left: "64%" },  // 🍒 CITY404 (Middle-Right)
-              { top: "71%", left: "40%" },  // 🥝 CupidOS (Bottom-Middle)
-              { top: "43%", left: "16%" },  // 🍋 TripTales (Middle-Left)
+              { top: "16%", left: "40%" },  // 🍓 ScoloraX (Top)
+              { top: "35%", left: "64%" },  // 🍒 CITY404 (Upper Right)
+              { top: "65%", left: "55%" },  // 🥝 CupidOS (Lower Right)
+              { top: "65%", left: "25%" },  // 🍋 TripTales (Lower Left)
+              { top: "35%", left: "16%" },  // 🍊 FocusNest (Upper Left)
             ];
             const currentPos = positions[index];
             return (
               <div
                 key={project.id}
+                data-project-id={project.id}
                 className="absolute flex flex-col items-center select-none z-10"
                 style={{
                   top: currentPos.top,
@@ -585,10 +715,80 @@ export default function FruitNinja() {
             );
           })}
         </div>
+
+        {/* Mobile Fruits Grid Arena (Mobile/Tablet Only) */}
+        <div className="lg:hidden w-full flex flex-wrap justify-center gap-y-12 gap-x-6 py-6 select-none relative z-10">
+          {projects.map((project, index) => {
+            const isSliced = slicedFruits[project.id]?.isSliced;
+            return (
+              <div
+                key={project.id}
+                data-project-id={project.id}
+                className="flex flex-col items-center select-none"
+              >
+                {/* Circular Icon Container that Splits in Half */}
+                <div
+                  className="relative w-28 h-28 cursor-none hover:scale-105 active:scale-95 transition-transform duration-300 select-none fruit-float"
+                  style={{
+                    animationDelay: `${index * 0.45}s`,
+                  }}
+                  onClick={(e) => triggerSlice(project, e.clientX, e.clientY)}
+                >
+                  {/* Glowing halo behind the split */}
+                  <div
+                    className={`absolute inset-3 rounded-full transition-opacity duration-500 blur-xl -z-10 ${
+                      isSliced ? "opacity-100 scale-125" : "opacity-0"
+                    }`}
+                    style={{ backgroundColor: project.color, boxShadow: `0 0 30px ${project.color}` }}
+                  />
+                  {/* LEFT HALF OF THE SPLIT CIRCLE */}
+                  <div
+                    className="absolute inset-0 bg-stone-900/35 backdrop-blur-md rounded-full border-[4px] border-[#C38A4D] shadow-[0_8px_16px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden"
+                    style={{
+                      clipPath: "polygon(0 0, 50% 0, 50% 100%, 0 100%)",
+                      transform: isSliced ? "translateX(-32px) rotate(-15deg)" : "translateX(0) rotate(0)",
+                      transition: "transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)",
+                    }}
+                  >
+                    <span className="text-[64px] leading-none select-none pr-[4px]">{project.fruit}</span>
+                  </div>
+                  {/* RIGHT HALF OF THE SPLIT CIRCLE */}
+                  <div
+                    className="absolute inset-0 bg-stone-900/35 backdrop-blur-md rounded-full border-[4px] border-[#C38A4D] shadow-[0_8px_16px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden"
+                    style={{
+                      clipPath: "polygon(50% 0, 100% 0, 100% 100%, 50% 100%)",
+                      transform: isSliced ? "translateX(32px) rotate(15deg)" : "translateX(0) rotate(0)",
+                      transition: "transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)",
+                    }}
+                  >
+                    <span className="text-[64px] leading-none select-none pl-[4px]">{project.fruit}</span>
+                  </div>
+                  {/* Golden shining shuriken/star core */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500 z-10 ${
+                      isSliced ? "opacity-100 scale-100 rotate-180" : "opacity-0 scale-50"
+                    }`}
+                  >
+                    <span className="text-2xl text-yellow-300 drop-shadow-[0_0_12px_rgba(253,224,71,0.8)]">✦</span>
+                  </div>
+                </div>
+                {/* Styled Label under the Circle */}
+                <span
+                  className="mt-2 text-2xl font-extrabold text-stone-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none pointer-events-none"
+                  style={{ fontFamily: "'Caveat', cursive" }}
+                >
+                  {project.title}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Parchment Project Details Scroll */}
         {selectedProject ? (
           <div
-            className="absolute lg:relative right-4 lg:right-0 top-32 lg:top-0 w-[92%] max-w-[530px] bg-[#f7ecd0] border-[14px] border-[#a0744a] rounded-[36px] shadow-[0_15px_30px_rgba(0,0,0,0.7)] p-8 select-text z-30 transform scale-100 transition-all duration-500 hover:shadow-[0_25px_45px_rgba(0,0,0,0.8)] overflow-hidden"
+            id="fruit-details-card"
+            className="relative lg:relative w-[95%] lg:w-[45%] max-w-[530px] bg-[#f7ecd0] border-[14px] border-[#a0744a] rounded-[36px] shadow-[0_15px_30px_rgba(0,0,0,0.7)] p-8 select-text z-30 transform scale-100 transition-all duration-500 hover:shadow-[0_25px_45px_rgba(0,0,0,0.8)] overflow-hidden scroll-mt-6"
             style={{
               backgroundImage: "url('https://www.transparenttextures.com/patterns/old-map.png')",
               boxShadow: "inset 0 0 100px rgba(120,70,30,0.15), 0 20px 40px rgba(0,0,0,0.6)",

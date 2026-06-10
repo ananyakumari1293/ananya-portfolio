@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 // Definition for Cakes data structure (icon removed to prevent type compile error)
 interface CakeData {
   id: "strawberry" | "blueberry" | "chocolate";
@@ -19,7 +19,6 @@ interface CakeData {
   sprinkleColors: string[];
 }
 export default function CookingMama() {
-  const navigate = useNavigate();
   // Active cake states
   const [slicedCakes, setSlicedCakes] = useState<{ [key: string]: boolean }>({});
   const [everSliced, setEverSliced] = useState<{ [key: string]: boolean }>({});
@@ -30,6 +29,14 @@ export default function CookingMama() {
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [isHoveringBoard, setIsHoveringBoard] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
+
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    setIsTouchDevice(
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0
+    );
+  }, []);
   // Physics-based cream particle spray states
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; vx: number; vy: number; color: string; size: number; alpha: number }[]>([]);
   // Web Audio Context for authentic kitchen sound synthesis
@@ -281,6 +288,17 @@ export default function CookingMama() {
     setSlicedCakes(updatedSliced);
     setEverSliced(newEver);
     setOpenCard(cake.id);
+    
+    // Auto-scroll on mobile viewports to center focus on active card
+    if (window.innerWidth < 768) {
+      setTimeout(() => {
+        const cakeElement = document.getElementById(`cake-card-${cake.id}`);
+        if (cakeElement) {
+          cakeElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    }
+    
     // Check if ALL three cakes have been sliced
     const allCleared = Object.keys(newEver).length === 3;
     if (allCleared) {
@@ -316,7 +334,7 @@ export default function CookingMama() {
       className="min-h-screen relative overflow-hidden cozy-bakery-bg flex flex-col font-sans select-none"
       style={{ 
         fontFamily: "'Outfit', sans-serif",
-        cursor: isHoveringBoard ? "none" : "auto" 
+        cursor: isHoveringBoard && !isTouchDevice ? "none" : "auto" 
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHoveringBoard(true)}
@@ -343,7 +361,7 @@ export default function CookingMama() {
         />
       ))}
       {/* Trailing Cozy Chef Spatula/Knife Cursor */}
-      {isHoveringBoard && (
+      {isHoveringBoard && !isTouchDevice && (
         <div
           className="fixed pointer-events-none z-50 select-none shadow-none"
           style={{
@@ -389,28 +407,23 @@ export default function CookingMama() {
           </div>
         </div>
       )}
-      {/* 1. HEADER NAV BAR */}
-      <header className="relative z-20 flex items-center justify-between px-6 md:px-12 py-5 max-w-7xl mx-auto w-full select-none">
-        <button
-          onClick={() => navigate("/")}
-          className="group bg-[#fff5f0] hover:bg-pink-100/70 border border-pink-200 hover:border-pink-300 px-6 py-2.5 rounded-full text-xs font-black text-pink-700 flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm uppercase tracking-widest cursor-none"
-        >
-          🏠 Return Home
-        </button>
-        <div className="flex gap-4 items-center">
-          <div className="bg-[#fff5f0] border border-pink-200 px-5 py-2 rounded-2xl shadow-sm text-stone-500 font-extrabold text-xs tracking-wider">
-            🍰 Slices Discovered:{" "}
-            <span className="text-pink-600 font-black">
-              {Object.keys(everSliced).length}/3
-            </span>
-          </div>
-          <button
-            onClick={handleResetBakery}
-            className="group bg-pink-100 hover:bg-pink-200 border border-pink-300 px-5 py-2.5 rounded-full text-xs font-black text-pink-700 flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm uppercase tracking-widest cursor-none"
-          >
-            🔄 Restart
-          </button>
+      {/* Reusable Navbar */}
+      <Navbar theme="light" />
+
+      {/* Cooking Controls Header */}
+      <header className="relative z-20 flex items-center justify-between px-6 md:px-12 py-4 max-w-7xl mx-auto w-full select-none">
+        <div className="bg-[#fff5f0] border border-pink-200 px-5 py-2.5 rounded-2xl shadow-sm text-stone-500 font-extrabold text-xs tracking-wider">
+          🍰 Slices Discovered:{" "}
+          <span className="text-pink-600 font-black">
+            {Object.keys(everSliced).length}/3
+          </span>
         </div>
+        <button
+          onClick={handleResetBakery}
+          className="group bg-pink-100 hover:bg-pink-200 border border-pink-300 px-5 py-2.5 rounded-full text-xs font-black text-pink-700 flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm uppercase tracking-widest cursor-none"
+        >
+          🔄 Restart Bakery
+        </button>
       </header>
       {/* Cooking Title Block */}
       <section className="relative z-10 text-center pt-2 select-none">
@@ -435,8 +448,9 @@ export default function CookingMama() {
             const isOpened = openCard === cake.id;
             return (
               <div
+                id={`cake-card-${cake.id}`}
                 key={cake.id}
-                className="flex flex-col items-center justify-end w-full max-w-[280px] h-[340px] relative"
+                className="flex flex-col items-center justify-end w-full max-w-[280px] h-[340px] relative scroll-mt-6"
               >
                 {/* Sparkles floating behind active unsliced cakes */}
                 {!isSliced && (

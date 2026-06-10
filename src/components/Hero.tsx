@@ -1,10 +1,24 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ananya from "../assets/ananya.jpg";
+import Navbar from "./Navbar";
 export default function Hero() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [hoveredSticky, setHoveredSticky] = useState<string | null>(null);
   const adventureRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.substring(1);
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    }
+  }, [location]);
   // Proactively inject Nunito & Dancing Script Google Fonts, and custom keyframes on mount
   useEffect(() => {
     // 1. Google Font Link
@@ -61,14 +75,20 @@ export default function Hero() {
         0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
         50% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0.18); }
       }
-      .float-doodle { pointer-events: none; z-index: 15; position: absolute; font-size: 2.2rem; }
+      .float-doodle { pointer-events: none; z-index: 15; position: absolute; font-size: 2.2rem; display: none; }
+      @media (min-width: 640px) {
+        .float-doodle { display: block; }
+      }
       .d1 { top: 8%; left: -4%; animation: floatY 3s ease-in-out infinite; --r: -10deg; }
       .d2 { top: 5%; right: 0%; animation: floatY 2.8s 0.3s ease-in-out infinite; --r: 8deg; }
       .d3 { bottom: 14%; left: -6%; animation: floatSpin 3.5s ease-in-out infinite; }
       .d4 { bottom: 8%; right: -2%; animation: floatY 3.2s 0.6s ease-in-out infinite; --r: 12deg; }
       .d5 { top: 38%; right: -8%; animation: floatY 4s 0.9s ease-in-out infinite; --r: -5deg; }
       .d6 { top: 25%; left: -10%; animation: floatY 2.6s 1.2s ease-in-out infinite; --r: 6deg; font-size: 1.6rem; }
-      .star-float { pointer-events: none; z-index: 12; position: absolute; animation: starTwinkle 2s ease-in-out infinite; }
+      .star-float { pointer-events: none; z-index: 12; position: absolute; animation: starTwinkle 2s ease-in-out infinite; display: none; }
+      @media (min-width: 640px) {
+        .star-float { display: block; }
+      }
       .sf1 { top: 2%; left: 38%; font-size: 1.4rem; animation-delay: 0.2s; }
       .sf2 { top: 52%; left: -8%; font-size: 1rem; animation-delay: 0.7s; }
       .sf3 { bottom: 20%; right: 22%; font-size: 1.2rem; animation-delay: 1.1s; }
@@ -109,65 +129,29 @@ export default function Hero() {
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
       {/* 1. NAVBAR */}
-      <nav className="mx-6 mt-5 bg-white rounded-[40px] px-8 py-4 flex items-center justify-between border border-pink-100 shadow-[0_4px_24px_rgba(255,130,180,0.15)] animate-nav-glow z-40 relative select-none">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-          AK<span className="text-pink-500">.</span>
-        </h1>
-        <div className="hidden md:flex gap-8 font-extrabold text-slate-700 text-[15px]">
-          {["Home", "About", "Projects", "Skills", "Contact"].map((link) => (
-            <a
-              key={link}
-              href="#"
-              className="relative transition-all duration-300 hover:text-pink-500 after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:height-[2.5px] after:bg-gradient-to-r after:from-pink-500 after:to-purple-500 after:rounded-full after:transition-all after:duration-300 hover:after:w-full"
-            >
-              {link}
-            </a>
-          ))}
-        </div>
-        {/* Beautiful Pastel Resume Button */}
-        <button
-          className="
-            bg-gradient-to-r
-            from-pink-100
-            to-purple-100
-            text-pink-700
-            px-7
-            py-3
-            rounded-full
-            font-extrabold
-            border
-            border-pink-200
-            shadow-md
-            hover:from-pink-200
-            hover:to-purple-200
-            hover:scale-105
-            transition-all
-            duration-300
-          "
-        >
-          📄 Resume
-        </button>
-      </nav>
+      <Navbar theme="light" />
       {/* 2. HERO GRID */}
       <section className="max-w-7xl mx-auto px-8 py-14 grid lg:grid-cols-2 gap-10 items-center select-none relative z-10">
         
         {/* LEFT COLUMN: HERO INFORMATION */}
         <div className="animate-fade-up text-left">
           <p
-            className="text-pink-500 text-5xl mb-4 leading-tight"
+            className="text-pink-500 text-4xl md:text-5xl mb-4 leading-tight"
             style={{ fontFamily: "'Dancing Script', cursive" }}
           >
             Hey, I'm Ananya 👋
           </p>
-          <div className="relative inline-block">
+          <div className="relative inline-block w-full">
             {/* Playful highlight blob under heading */}
             <div
               className="
                 absolute
                 left-12
                 bottom-3
-                w-[290px]
-                h-11
+                w-[180px]
+                sm:w-[290px]
+                h-7
+                sm:h-11
                 bg-pink-100
                 rounded-full
                 rotate-[-2.5deg]
@@ -175,7 +159,7 @@ export default function Hero() {
                 -z-10
               "
             />
-            <h1 className="text-7xl font-black leading-tight text-slate-900">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black leading-tight text-slate-900 break-words">
               Building things
               <br />
               that <span className="animate-shimmer-text">matter.</span>
@@ -253,12 +237,12 @@ export default function Hero() {
           </button>
         </div>
         {/* RIGHT COLUMN: INTERACTIVE PHOTO & STICKIES */}
-        <div className="relative flex justify-center items-center min-h-[500px] select-none">
+        <div className="relative flex justify-center items-center min-h-[360px] sm:min-h-[500px] select-none">
           {/* Radial Blob Backdrop */}
-          <div className="absolute z-0 w-[480px] h-[480px] rounded-full bg-pink-200 blur-3xl opacity-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute z-0 w-[280px] h-[280px] sm:w-[480px] sm:h-[480px] rounded-full bg-pink-200 blur-3xl opacity-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           {/* Winding Orbit Rings */}
-          <div className="absolute w-[430px] h-[430px] rounded-full border-2 border-dashed border-pink-400/40 animate-spin [animation-duration:22s] pointer-events-none" />
-          <div className="absolute w-[360px] h-[360px] rounded-full border-[1.5px] border-dotted border-purple-400/30 animate-spin [animation-duration:15s] [animation-direction:reverse] pointer-events-none" />
+          <div className="absolute w-[260px] h-[260px] sm:w-[430px] sm:h-[430px] rounded-full border-2 border-dashed border-pink-400/40 animate-spin [animation-duration:22s] pointer-events-none" />
+          <div className="absolute w-[200px] h-[200px] sm:w-[360px] sm:h-[360px] rounded-full border-[1.5px] border-dotted border-purple-400/30 animate-spin [animation-duration:15s] [animation-direction:reverse] pointer-events-none" />
           {/* Twinkling Stars */}
           <div className="star-float sf1">⭐</div>
           <div className="star-float sf2">✨</div>
@@ -281,7 +265,7 @@ export default function Hero() {
             </div>
             {/* Glossy Photo Circle */}
             <div
-              className="relative z-20 w-[320px] h-[320px] rounded-full overflow-hidden border-[6px] border-white shadow-[0_20px_60px_rgba(236,72,153,0.35)] transition-all duration-500 hover:scale-105"
+              className="relative z-20 w-[220px] h-[220px] sm:w-[320px] sm:h-[320px] rounded-full overflow-hidden border-[6px] border-white shadow-[0_20px_60px_rgba(236,72,153,0.35)] transition-all duration-500 hover:scale-105"
               style={{
                 animation: "glowPulse 3s ease-in-out infinite",
               }}
@@ -323,7 +307,7 @@ export default function Hero() {
           <div
             onMouseEnter={() => setHoveredSticky("s1")}
             onMouseLeave={() => setHoveredSticky(null)}
-            className="absolute top-[5%] right-[-5%] bg-pink-100 border border-pink-200 px-5 py-4 rounded-2xl shadow-xl z-30 max-w-[200px] text-xs font-black text-pink-900 leading-relaxed cursor-default transition-all duration-300"
+            className="hidden lg:block absolute top-[5%] right-[-5%] bg-pink-100 border border-pink-200 px-5 py-4 rounded-2xl shadow-xl z-30 max-w-[200px] text-xs font-black text-pink-900 leading-relaxed cursor-default transition-all duration-300"
             style={{
               transform: hoveredSticky === "s1" ? "rotate(0deg) scale(1.08)" : "rotate(4deg) scale(1)",
               animation: "stickyEntrance 0.8s ease both",
@@ -335,7 +319,7 @@ export default function Hero() {
           <div
             onMouseEnter={() => setHoveredSticky("s2")}
             onMouseLeave={() => setHoveredSticky(null)}
-            className="absolute top-[48%] right-[-10%] bg-yellow-100 border border-yellow-200 px-5 py-4 rounded-2xl shadow-xl z-30 max-w-[200px] text-xs font-black text-amber-900 leading-relaxed cursor-default transition-all duration-300"
+            className="hidden lg:block absolute top-[48%] right-[-10%] bg-yellow-100 border border-yellow-200 px-5 py-4 rounded-2xl shadow-xl z-30 max-w-[200px] text-xs font-black text-amber-900 leading-relaxed cursor-default transition-all duration-300"
             style={{
               transform: hoveredSticky === "s2" ? "rotate(0deg) scale(1.08)" : "rotate(-3deg) scale(1)",
               animation: "stickyEntrance 0.8s ease both",
@@ -347,7 +331,7 @@ export default function Hero() {
           <div
             onMouseEnter={() => setHoveredSticky("s3")}
             onMouseLeave={() => setHoveredSticky(null)}
-            className="absolute bottom-[6%] right-[-4%] bg-blue-100 border border-blue-200 px-5 py-4 rounded-2xl shadow-xl z-30 max-w-[200px] text-xs font-black text-blue-900 leading-relaxed cursor-default transition-all duration-300"
+            className="hidden lg:block absolute bottom-[6%] right-[-4%] bg-blue-100 border border-blue-200 px-5 py-4 rounded-2xl shadow-xl z-30 max-w-[200px] text-xs font-black text-blue-900 leading-relaxed cursor-default transition-all duration-300"
             style={{
               transform: hoveredSticky === "s3" ? "rotate(0deg) scale(1.08)" : "rotate(3deg) scale(1)",
               animation: "stickyEntrance 0.8s ease both",
@@ -372,9 +356,10 @@ export default function Hero() {
         {/* Bubbly Game Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           
-          {/* Level 01 Card - Candy Crush */}
+          {/* Level 01 Card - Flower Garden */}
           <div
-            onClick={() => navigate("/candy-crush")}
+            id="card-flower-garden"
+            onClick={() => navigate("/flower-garden")}
             className="relative bg-pink-100/50 hover:bg-pink-300/80 border border-pink-200 hover:border-pink-400 text-slate-800 rounded-[28px] p-8 shadow-lg cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:rotate-[-1deg] group"
             style={{
               boxShadow: "0 10px 25px rgba(236,72,153,0.06)",
@@ -384,17 +369,18 @@ export default function Hero() {
               LVL 01
             </div>
             <div className="text-6xl mb-4 transform group-hover:scale-110 group-hover:rotate-[15deg] transition-all duration-300 w-fit select-none">
-              🍭
+              🌸
             </div>
             <h3 className="font-black text-xl text-slate-900 leading-tight">
-              Candy Crush World
+              Fairy Flower Garden
             </h3>
-            <p className="text-slate-600 font-bold text-[13px] mt-2 leading-snug">
+            <p className="text-slate-650 font-bold text-[13px] mt-2 leading-snug">
               About Me &amp; Education
             </p>
           </div>
           {/* Level 02 Card - Fruit Ninja */}
           <div
+            id="card-fruit-ninja"
             onClick={() => navigate("/fruit-ninja")}
             className="relative bg-emerald-100/50 hover:bg-emerald-300/80 border border-emerald-200 hover:border-emerald-400 text-slate-800 rounded-[28px] p-8 shadow-lg cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:rotate-[1deg] group"
             style={{
@@ -416,6 +402,7 @@ export default function Hero() {
           </div>
           {/* Level 03 Card - Skill Strike Arena */}
           <div
+            id="card-skill-strike"
             onClick={() => navigate("/bowling-zone")}
             className="relative bg-purple-100/50 hover:bg-purple-300/80 border border-purple-200 hover:border-purple-400 text-slate-800 rounded-[28px] p-8 shadow-lg cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:rotate-[-1deg] group"
             style={{
@@ -437,6 +424,7 @@ export default function Hero() {
           </div>
           {/* Level 04 Card - Cooking Mama */}
           <div
+            id="card-cooking-mama"
             onClick={() => navigate("/cooking-mama")}
             className="relative bg-yellow-100/50 hover:bg-yellow-300/80 border border-yellow-250 hover:border-yellow-400 text-slate-800 rounded-[28px] p-8 shadow-lg cursor-pointer transition-all duration-300 hover:-translate-y-3 hover:rotate-[1deg] group"
             style={{
@@ -480,7 +468,7 @@ export default function Hero() {
             </h3>
             <div className="space-y-4 text-slate-700 font-semibold text-base leading-relaxed">
               <p>
-                I hope you enjoyed exploring these four interactive levels! From matches in the <strong>Candy Crush World</strong> to slashes in the <strong>Fruit Ninja Projects</strong>, and throwing strikes in the <strong>Skill Arena</strong> to slicing sweet treats in the <strong>Contact Bakery</strong>—I absolutely love blending software engineering with high-fidelity, playful experiences.
+                I hope you enjoyed exploring these four interactive levels! From blooming buds in the <strong>Fairy Flower Garden</strong> to slashes in the <strong>Fruit Ninja Projects</strong>, and throwing strikes in the <strong>Skill Arena</strong> to slicing sweet treats in the <strong>Contact Bakery</strong>—I absolutely love blending software engineering with high-fidelity, playful experiences.
               </p>
               <p>
                 Underneath these playful visuals lies a deeply creative engineering mind. I have a genuine passion for leveraging modern technologies and AI to turn unique, out-of-the-box ideas into functional digital products. 
